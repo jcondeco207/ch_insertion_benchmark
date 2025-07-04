@@ -23,5 +23,5 @@ target
 .DS_Store
 **/.DS_Store
 
-.env
-**/.env
+.env_local
+**/.env_local
