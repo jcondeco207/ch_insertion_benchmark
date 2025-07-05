@@ -7,6 +7,12 @@ class ClickhouseConnector:
     def __init__(self):
         self.open_session()
         print(f"[ CH CONNECTION ] : {self.client.ping()}")
+    
+    def is_connected(self):
+        try:
+            return self.client.ping()
+        except Exception as e:
+            print(f"[ ERROR ]: Failed to check ch connection, {e}")
 
     def open_session(self):
         try:
@@ -39,5 +45,27 @@ class ClickhouseConnector:
     def delete_database():
         pass
 
-test = ClickhouseConnector()
-test.close_session()
+
+class Benchmark:
+    def __init__(self, samples=5000):
+        self.samples = samples
+        self.ch_client = ClickhouseConnector()
+    
+    def health_checks(self) -> bool:
+        tests = [
+            self.ch_client.is_connected, 
+            self.check_database,
+            # check table
+        ]
+        pass
+
+    def check_database(self) -> bool:
+        try:
+            return True
+        except Exception as e:
+            print(f"[ ERROR ]: failed at check_database, {e}")
+            return False
+    
+
+# test = ClickhouseConnector()
+# test.close_session()
