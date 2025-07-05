@@ -48,14 +48,46 @@ class ClickhouseConnector:
         try:
             self.client.command(f"CREATE DATABASE IF NOT EXISTS {db_name}")
         except Exception as e:
-            print(f"[ ERROR ] : Failed to create DB - {e}")
+            print(f"[ ERROR ] : Failed to create {db_name} - {e}")
             traceback.print_exc()
 
-    def delete_database():
-        pass
+    def delete_database(self, db_name):
+        try:
+            self.client.command(f"DROP DATABASE IF EXISTS {db_name}")
+        except Exception as e:
+            print(f"[ ERROR ] : Failed to delete {db_name} - {e}")
+            traceback.print_exc()
 
-    def create_table(self, db_name: str, table_name:str, fields):
-        pass
+    def create_table(
+            self, 
+            db_name: str, 
+            table_name:str, 
+            fields: list[str],
+            time_variable_name: str,
+            engine: str = "ReplacingMergeTree()"):
+        try:
+
+            create_table_sql = f"""
+                CREATE TABLE IF NOT EXISTS `{db_name}`.{table_name} (
+                {',\n'.join(fields)}
+                )
+                ENGINE = {engine}
+                PARTITION BY toMonday({time_variable_name})
+                ORDER BY ({time_variable_name})
+                """
+            
+            self.client.command(create_table_sql)
+        except Exception as e:
+            print(f"[ ERROR ] : Failed to create {table_name} in {db_name} - {e}")
+            traceback.print_exc()
+
+
+    def delete_table(self, db_name: str, table_name:str):
+        try:            
+            self.client.command(f"DROP TABLE IF EXISTS `{db_name}`.{table_name}")
+        except Exception as e:
+            print(f"[ ERROR ] : Failed to drop {table_name} in {db_name} - {e}")
+            traceback.print_exc()
 
     def add_field_to_table(self, db_name:str, table_name:str, field_name:str, field_type:str, default_value):
         pass
