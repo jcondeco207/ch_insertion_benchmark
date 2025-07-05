@@ -31,18 +31,33 @@ class ClickhouseConnector:
         except Exception as e:
             print(f"[ ERROR ]: Failed to close session.")
 
-    def list_databases(self):
+    def list_databases(self, in_df=False, in_arrow=False):
         try:
-            databases = self.client.query_df(f"SHOW DATABASES")
-            return databases
+            query = "SHOW DATABASES"
+            if in_df:
+                return self.client.query_df(query)
+            elif in_arrow:
+                return self.client.query_arrow(query)
+            else:
+                return self.client.query(query)
         except Exception as e:
             print(f"[ ERROR ] : Failed to list DB's")
             return None
 
-    def create_database():
-        pass
+    def create_database(self, db_name):
+        try:
+            self.client.command(f"CREATE DATABASE IF NOT EXISTS {db_name}")
+        except Exception as e:
+            print(f"[ ERROR ] : Failed to create DB - {e}")
+            traceback.print_exc()
 
     def delete_database():
+        pass
+
+    def create_table(self, db_name: str, table_name:str, fields):
+        pass
+
+    def add_field_to_table(self, db_name:str, table_name:str, field_name:str, field_type:str, default_value):
         pass
 
 
@@ -60,6 +75,37 @@ class Benchmark:
         pass
 
     def check_database(self) -> bool:
+        """
+        - Drop Database f"PyBenchmark{self.samples}"
+        - Create Database with name f"PyBenchmark{self.samples}"
+        """
+        try:
+            return True
+        except Exception as e:
+            print(f"[ ERROR ]: failed at check_database, {e}")
+            return False
+        
+    def check_tables(self) -> bool:
+        """
+        Create table "Devices" with fields: 
+            - devEui String 
+            - device_name String
+            - application_id String
+            - application_name String
+            - device_profile_name String
+            - device_profile_id String
+            - last_seen DateTime64
+
+        Create table "uplink_data" with fields: 
+            - id UUID DEFAULT generateUUIDv4() 
+            - device_devEui String
+            - application_id String
+            - metric_id String
+            - metric_value String
+            - metric_type String
+            - metric_name String
+            - last_seen DateTime64
+        """
         try:
             return True
         except Exception as e:
