@@ -113,6 +113,8 @@ class ClickhouseConnector:
             print(f"[ ERROR ] : Failed to add field {field_name} to {table_name} in {db_name} - {e}")
             traceback.print_exc()
 
+    def insert_data(self, db_name:str, table_name:str, values):
+        pass
 
 class Benchmark:
     def __init__(self, samples=5000):
