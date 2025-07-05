@@ -33,20 +33,20 @@ Insert in bulk 5000 and 10 000 logs into clickhouse.
 
 ## Results
 
-|Language| SDK | Payload Size | Time |
-|:------:|:---:|:------------:|:----:|
-|Rust|clickhouse-rs|5000|  |
-|Rust|clickhouse-rs|10000|  |
-|Go|clickhouse-go|5000|  |
-|Go|clickhouse-go|10000|  |
-|Go|ch-go|5000|  |
-|Go|ch-go|10000|  |
-|Java|JDBC|5000|  |
-|Java|JDBC|10000|  |
-|Java|[Client](https://clickhouse.com/docs/integrations/language-clients/java/client)|5000|  |
-|Java|[Client](https://clickhouse.com/docs/integrations/language-clients/java/client)|10000|  |
-|Python|clickhouse-connect|5000|  |
-|Python|clickhouse-connect|10000|  |
+|Language| SDK | Payload Size | Time 1 | Time 2 | Time 3 |
+|:------:|:---:|:------------:|:------:|:------:|:------:|
+|Rust|clickhouse-rs|5000|  | | |
+|Rust|clickhouse-rs|10000|  | | |
+|Go|clickhouse-go|5000|  | | |
+|Go|clickhouse-go|10000|  | | |
+|Go|ch-go|5000|  | | |
+|Go|ch-go|10000|  | | |
+|Java|JDBC|5000|  | | |
+|Java|JDBC|10000|  | | |
+|Java|[Client](https://clickhouse.com/docs/integrations/language-clients/java/client)|5000|  | | |
+|Java|[Client](https://clickhouse.com/docs/integrations/language-clients/java/client)|10000|  | | |
+|Python|clickhouse-connect|5000|  | | |
+|Python|clickhouse-connect|10000|  | | |
 
 
 ## Conclusions
