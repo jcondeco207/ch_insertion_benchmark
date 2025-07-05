@@ -81,7 +81,6 @@ class ClickhouseConnector:
             print(f"[ ERROR ] : Failed to create {table_name} in {db_name} - {e}")
             traceback.print_exc()
 
-
     def delete_table(self, db_name: str, table_name:str):
         try:            
             self.client.command(f"DROP TABLE IF EXISTS `{db_name}`.{table_name}")
@@ -89,8 +88,30 @@ class ClickhouseConnector:
             print(f"[ ERROR ] : Failed to drop {table_name} in {db_name} - {e}")
             traceback.print_exc()
 
+    def check_if_table_exists(self, db_name: str, table_name:str):
+        try:
+            query = f"""
+                SELECT count()
+                FROM system.tables
+                WHERE database = '{db_name}' AND name = '{table_name}'
+            """
+            result = self.client.query(query)
+            return result.result_rows[0][0] > 0
+        except Exception as e:
+            print(f"[ ERROR ] : Failed to check if table exists - {e}")
+            traceback.print_exc()
+            return False
+
     def add_field_to_table(self, db_name:str, table_name:str, field_name:str, field_type:str, default_value):
-        pass
+        try:
+            alter_sql = f"""
+                ALTER TABLE `{db_name}`.{table_name}
+                ADD COLUMN IF NOT EXISTS {field_name} {field_type} DEFAULT {repr(default_value)}
+            """
+            self.client.command(alter_sql)
+        except Exception as e:
+            print(f"[ ERROR ] : Failed to add field {field_name} to {table_name} in {db_name} - {e}")
+            traceback.print_exc()
 
 
 class Benchmark:
@@ -102,9 +123,14 @@ class Benchmark:
         tests = [
             self.ch_client.is_connected, 
             self.check_database,
-            # check table
+            self.check_tables
         ]
-        pass
+
+        for test in tests:
+            check = test()
+            if not check:
+                return False
+        return True
 
     def check_database(self) -> bool:
         """
@@ -112,6 +138,9 @@ class Benchmark:
         - Create Database with name f"PyBenchmark{self.samples}"
         """
         try:
+            db_name = f"PyBenchmark{self.samples}"
+            self.ch_client.delete_database(db_name)
+            self.ch_client.create_database(db_name)
             return True
         except Exception as e:
             print(f"[ ERROR ]: failed at check_database, {e}")
@@ -136,14 +165,44 @@ class Benchmark:
             - metric_value String
             - metric_type String
             - metric_name String
-            - last_seen DateTime64
+            - event_time DateTime64
         """
         try:
+            devices_fields = [
+                "devEui String",
+                "device_name String",
+                "application_id String",
+                "application_name String",
+                "device_profile_name String",
+                "device_profile_id String",
+                "last_seen DateTime64"
+            ]
+            uplink_fields = [
+                "id UUID DEFAULT generateUUIDv4()",
+                "device_devEui String",
+                "application_id String",
+                "metric_id String",
+                "metric_value String",
+                "metric_type String",
+                "metric_name String",
+                "event_time DateTime64"
+            ]
+            db_name = f"PyBenchmark{self.samples}"
+            self.ch_client.delete_table(db_name, "devices")
+            self.ch_client.delete_table(db_name, "uplink_data")
+            self.ch_client.create_table(db_name, "devices", devices_fields, "last_seen")
+            self.ch_client.create_table(db_name, "uplink_data", uplink_fields, "event_time")
             return True
         except Exception as e:
             print(f"[ ERROR ]: failed at check_database, {e}")
             return False
-    
 
-# test = ClickhouseConnector()
-# test.close_session()
+    def generate_sample_data(self):
+        pass
+
+    def run(self):
+        is_ready = self.health_checks()
+        if not is_ready:
+            print("[ ERROR ]: Health checks failed")
+
+        self.generate_sample_data()
