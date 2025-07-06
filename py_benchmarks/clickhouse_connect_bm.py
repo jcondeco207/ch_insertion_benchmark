@@ -279,4 +279,5 @@ class Benchmark:
             print(f"[ INFO ]: Data insertion took {elapsed:.4f} seconds")
 
 bm = Benchmark()
-bm.run()
+for i in range(3):
+    bm.run()
