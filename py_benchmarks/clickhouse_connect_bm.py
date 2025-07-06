@@ -311,6 +311,8 @@ class Benchmark:
                 ]
             )
 
-bm = Benchmark()
+bm = Benchmark(
+    samples=10000
+)
 for i in range(3):
     bm.run()
