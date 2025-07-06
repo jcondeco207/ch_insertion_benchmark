@@ -160,6 +160,7 @@ class Benchmark:
             db_name = f"PyBenchmark{self.samples}"
             self.ch_client.delete_database(db_name)
             self.ch_client.create_database(db_name)
+            self.ch_client.create_database("Benchmarks")
             return True
         except Exception as e:
             print(f"[ ERROR ]: failed at check_database, {e}")
@@ -185,6 +186,14 @@ class Benchmark:
             - metric_type String
             - metric_name String
             - event_time DateTime64
+
+        Create table "benchmarks_data" with fields: 
+            - id UUID DEFAULT generateUUIDv4() 
+            - language String
+            - devices_count
+            - sample_count
+            - time 
+            - start_time DateTime64 (Auto generated)
         """
         try:
             devices_fields = [
@@ -211,6 +220,16 @@ class Benchmark:
             self.ch_client.delete_table(db_name, "uplink_data")
             self.ch_client.create_table(db_name, "devices", devices_fields, "last_seen")
             self.ch_client.create_table(db_name, "uplink_data", uplink_fields, "event_time")
+
+            benchmarks_fields = [
+                "id UUID DEFAULT generateUUIDv4()",
+                "language String",
+                "devices_count UInt32",
+                "sample_count UInt32",
+                "time Float64",
+                "start_time DateTime64 DEFAULT now()"
+            ]
+            self.ch_client.create_table("Benchmarks", "benchmarks_data", benchmarks_fields, "start_time")
             return True
         except Exception as e:
             print(f"[ ERROR ]: failed at check_database, {e}")
@@ -277,6 +296,20 @@ class Benchmark:
             end_time = time.time()
             elapsed = end_time - start_time
             print(f"[ INFO ]: Data insertion took {elapsed:.4f} seconds")
+
+            # Insert benchmark data
+            self.ch_client.insert_data(
+                db_name="Benchmarks",
+                table_name="benchmarks_data",
+                values=[
+                    {
+                        "language": "python",
+                        "devices_count": len(sample_data["devices"]),
+                        "sample_count": len(sample_data["uplink_data"]),
+                        "time": elapsed,
+                    }
+                ]
+            )
 
 bm = Benchmark()
 for i in range(3):
