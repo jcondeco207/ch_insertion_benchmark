@@ -25,3 +25,6 @@ target
 
 .env_local
 **/.env_local
+
+.env
+**/.env
