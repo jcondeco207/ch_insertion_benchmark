@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import random
 import uuid
 from datetime import datetime, timedelta
+import time
 
 
 class ClickhouseConnector:
@@ -132,7 +133,8 @@ class ClickhouseConnector:
             traceback.print_exc()
 
 class Benchmark:
-    def __init__(self, samples=5000):
+    def __init__(self, samples=5000, devices=10):
+        self.devices = devices
         self.samples = samples
         self.ch_client = ClickhouseConnector()
     
@@ -222,7 +224,7 @@ class Benchmark:
             uplink_data = []
 
             # First, generate devices
-            for i in range(self.samples):
+            for i in range(self.devices):
                 dev_eui = f"{random.randint(10000000, 99999999):08x}"
                 device_name = f"device_{i}"
                 application_id = f"app_{random.randint(1, 10)}"
@@ -243,7 +245,7 @@ class Benchmark:
 
             # For each device, generate multiple uplink_data entries
             for device in devices:
-                num_uplinks = random.randint(2, 10)
+                num_uplinks = int(round(self.samples / self.devices, 0))
                 for _ in range(num_uplinks):
                     uplink_data.append({
                         "id": str(uuid.uuid4()),
@@ -269,8 +271,12 @@ class Benchmark:
         sample_data = self.generate_sample_data()
         db_name = f"PyBenchmark{self.samples}"
         if sample_data:
+            start_time = time.time()
             self.ch_client.insert_data(db_name, "devices", sample_data["devices"])
             self.ch_client.insert_data(db_name, "uplink_data", sample_data["uplink_data"])
+            end_time = time.time()
+            elapsed = end_time - start_time
+            print(f"[ INFO ]: Data insertion took {elapsed:.4f} seconds")
 
 bm = Benchmark()
 bm.run()
