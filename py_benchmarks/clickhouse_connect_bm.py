@@ -69,6 +69,7 @@ class ClickhouseConnector:
             table_name:str, 
             fields: list[str],
             time_variable_name: str,
+            primary_key: str,
             engine: str = "ReplacingMergeTree()"):
         try:
 
@@ -78,7 +79,7 @@ class ClickhouseConnector:
                 )
                 ENGINE = {engine}
                 PARTITION BY toMonday({time_variable_name})
-                ORDER BY ({time_variable_name})
+                ORDER BY ({primary_key}, {time_variable_name})
                 """
             
             self.ch_client.command(create_table_sql)
@@ -218,8 +219,8 @@ class Benchmark:
             db_name = f"PyBenchmark{self.samples}"
             self.ch_client.delete_table(db_name, "devices")
             self.ch_client.delete_table(db_name, "uplink_data")
-            self.ch_client.create_table(db_name, "devices", devices_fields, "last_seen")
-            self.ch_client.create_table(db_name, "uplink_data", uplink_fields, "event_time")
+            self.ch_client.create_table(db_name, "devices", devices_fields, "last_seen", "devEui")
+            self.ch_client.create_table(db_name, "uplink_data", uplink_fields, "event_time", "id")
 
             benchmarks_fields = [
                 "id UUID DEFAULT generateUUIDv4()",
@@ -229,7 +230,7 @@ class Benchmark:
                 "time Float64",
                 "start_time DateTime64 DEFAULT now()"
             ]
-            self.ch_client.create_table("Benchmarks", "benchmarks_data", benchmarks_fields, "start_time")
+            self.ch_client.create_table("Benchmarks", "benchmarks_data", benchmarks_fields, "start_time", "id")
             return True
         except Exception as e:
             print(f"[ ERROR ]: failed at check_database, {e}")
@@ -303,6 +304,7 @@ class Benchmark:
                 table_name="benchmarks_data",
                 values=[
                     {
+                        "id": str(uuid.uuid4()),
                         "language": "python",
                         "devices_count": len(sample_data["devices"]),
                         "sample_count": len(sample_data["uplink_data"]),
@@ -311,8 +313,6 @@ class Benchmark:
                 ]
             )
 
-bm = Benchmark(
-    samples=10000
-)
+bm = Benchmark(samples=5000)
 for i in range(3):
     bm.run()
