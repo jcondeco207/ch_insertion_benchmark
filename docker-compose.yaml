@@ -6,8 +6,9 @@ services:
       - CLICKHOUSE_USER=${CLICKHOUSE_USER}
       - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
     ports:
-      - "${CLICKHOUSE_PORT}:8123"
+      - "8123:8123"
       - "9000:9000"
+      - "9440:9440"
     volumes:
       - benchmark_volume:/var/lib/clickhouse
     networks:
