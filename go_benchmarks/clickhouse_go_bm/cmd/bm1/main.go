@@ -14,5 +14,10 @@ func main() {
 		return
 	}
 
-	clickhouse.ListDatabases(connection)
+	dbs, err := clickhouse.ListDatabases(connection)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(dbs)
+
 }

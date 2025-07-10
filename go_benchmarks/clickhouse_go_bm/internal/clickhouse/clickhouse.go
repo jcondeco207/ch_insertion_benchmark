@@ -52,18 +52,23 @@ func CloseConnection(conn driver.Conn) error {
 	return conn.Close()
 }
 
-func ListDatabases(conn driver.Conn) (driver.Rows, error) {
+func ListDatabases(conn driver.Conn) ([]string, error) {
 	rows, err := conn.Query(context.Background(), "SHOW DATABASES")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	return rows, nil
-	// var dbName string
-	// for rows.Next() {
-	// 	if err := rows.Scan(&dbName); err != nil {
-	// 		return err
-	// 	}
-	// 	fmt.Println(dbName)
-	// }
+
+	var databases []string
+	for rows.Next() {
+		var db string
+		if err := rows.Scan(&db); err != nil {
+			return nil, err
+		}
+		databases = append(databases, db)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return databases, nil
 }
