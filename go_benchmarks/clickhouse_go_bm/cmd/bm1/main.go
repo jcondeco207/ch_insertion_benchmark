@@ -8,10 +8,11 @@ import (
 
 func main() {
 	fmt.Println("Hello there")
-	_, err := clickhouse.Connect()
+	connection, err := clickhouse.Connect()
 	if err != nil {
-		fmt.Println("Failed to connect:", err)
+		fmt.Println("Failed to connect to clickhouse:", err)
 		return
 	}
 
+	clickhouse.ListDatabases(connection)
 }

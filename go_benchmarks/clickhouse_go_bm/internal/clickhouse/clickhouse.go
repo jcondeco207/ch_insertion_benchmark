@@ -8,6 +8,10 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
+func IsConnected(conn driver.Conn) error {
+	return conn.Ping(context.Background())
+}
+
 func Connect() (driver.Conn, error) {
 	var (
 		ctx       = context.Background()
@@ -42,4 +46,24 @@ func Connect() (driver.Conn, error) {
 		return nil, err
 	}
 	return conn, nil
+}
+
+func CloseConnection(conn driver.Conn) error {
+	return conn.Close()
+}
+
+func ListDatabases(conn driver.Conn) (driver.Rows, error) {
+	rows, err := conn.Query(context.Background(), "SHOW DATABASES")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return rows, nil
+	// var dbName string
+	// for rows.Next() {
+	// 	if err := rows.Scan(&dbName); err != nil {
+	// 		return err
+	// 	}
+	// 	fmt.Println(dbName)
+	// }
 }
