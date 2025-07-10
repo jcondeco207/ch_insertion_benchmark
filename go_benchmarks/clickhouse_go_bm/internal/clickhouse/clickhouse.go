@@ -2,7 +2,6 @@ package clickhouse
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -13,9 +12,8 @@ func Connect() (driver.Conn, error) {
 	var (
 		ctx       = context.Background()
 		conn, err = clickhouse.Open(&clickhouse.Options{
-			Addr: []string{"127.0.0.1:9440"},
+			Addr: []string{"127.0.0.1:9000"},
 			Auth: clickhouse.Auth{
-				Database: "default",
 				Username: "demo",
 				Password: "demo",
 			},
@@ -29,9 +27,6 @@ func Connect() (driver.Conn, error) {
 			},
 			Debugf: func(format string, v ...interface{}) {
 				fmt.Printf(format, v)
-			},
-			TLS: &tls.Config{
-				InsecureSkipVerify: true,
 			},
 		})
 	)
