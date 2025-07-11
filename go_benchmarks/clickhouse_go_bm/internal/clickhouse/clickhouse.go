@@ -72,3 +72,20 @@ func ListDatabases(conn driver.Conn) ([]string, error) {
 	}
 	return databases, nil
 }
+func CreateDatabase(conn driver.Conn, dbName string) error {
+	query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbName)
+	if err := conn.Exec(context.Background(), query); err != nil {
+		fmt.Printf("[ ERROR ] : Failed to create %s - %v\n", dbName, err)
+		return err
+	}
+	return nil
+}
+
+func DeleteDatabase(conn driver.Conn, dbName string) error {
+	query := fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName)
+	if err := conn.Exec(context.Background(), query); err != nil {
+		fmt.Printf("[ ERROR ] : Failed to delete %s - %v\n", dbName, err)
+		return err
+	}
+	return nil
+}
