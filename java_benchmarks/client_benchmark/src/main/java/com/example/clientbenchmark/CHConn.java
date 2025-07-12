@@ -10,7 +10,6 @@ public class CHConn {
     private String clickhouse_host;
     private int clickhouse_port;
 
-
     private void set_username(String username) {
         this.username = username;
     }
@@ -29,26 +28,38 @@ public class CHConn {
 
     public boolean connect() {
         try {
-            if(this.username != null && this.password != null){
+            if (this.username != null && this.password != null) {
                 this.ch_client = new Client.Builder()
-                .addEndpoint("http://"+ this.clickhouse_host + ":" + this.clickhouse_port + "/")
-                .setUsername(this.username)
-                .setPassword(this.password)
-                .build();
+                        .addEndpoint("http://" + this.clickhouse_host + ":" + this.clickhouse_port + "/")
+                        .setUsername(this.username)
+                        .setPassword(this.password)
+                        .build();
 
                 return true;
-            }
-            else{
+            } else {
+                System.out.println("[ ERROR ]: Failed to connect to clickhouse due to: "
+                        +
+                        "username/password/host/port not being provided");
                 return false;
             }
-            
+
         } catch (Exception e) {
             System.out.println("[ ERROR ]: Failed to connect to clickhouse due to: " + e);
             return false;
         }
     }
 
-    public boolean is_connected(){
+    public boolean disconnect(){
+        try {
+            this.ch_client.close();
+            return !this.is_connected();
+        } catch (Exception e) {
+            System.out.println("[ ERROR ]: Failed to ping clickhouse due to: " + e);
+            return false;
+        }
+    }
+
+    public boolean is_connected() {
         try {
             return this.ch_client.ping();
         } catch (Exception e) {
@@ -57,12 +68,10 @@ public class CHConn {
         }
     }
 
-    
-
     public CHConn(String username, String passsword, String clickhouse_host, int clickhouse_port) {
         set_username(username);
         set_password(passsword);
-        set_clickhouse_host(passsword);
+        set_clickhouse_host(clickhouse_host);
         set_clickhouse_port(clickhouse_port);
         connect();
     }

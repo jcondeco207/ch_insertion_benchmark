@@ -17,5 +17,5 @@ dependencies {
 }
 
 application {
-    mainClass.set("ClientBenchmark")
+    mainClass.set("com.example.clientbenchmark.ClientBenchmark")
 }

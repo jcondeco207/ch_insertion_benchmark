@@ -1,10 +1,15 @@
 package com.example.clientbenchmark;
 
-import  com.clickhouse.client.api.Client;
-import com.example.clientbenchmark.CHConn;
-
 public class ClientBenchmark {
-    public static void main(String[] args){
-        System.out.println("Hello there");
+    public static void main(String[] args) {
+        CHConn ch_connector = new CHConn(
+                "demo",
+                "demo",
+                "localhost",
+                8123);
+
+        System.out.println("Is connected: " + ch_connector.is_connected());
+        System.out.println("Is disconnected: " + ch_connector.disconnect());
+
     }
 }
