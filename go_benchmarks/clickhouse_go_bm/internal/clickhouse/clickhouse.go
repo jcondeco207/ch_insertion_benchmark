@@ -72,6 +72,7 @@ func ListDatabases(conn driver.Conn) ([]string, error) {
 	}
 	return databases, nil
 }
+
 func CreateDatabase(conn driver.Conn, dbName string) error {
 	query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbName)
 	if err := conn.Exec(context.Background(), query); err != nil {
@@ -88,4 +89,18 @@ func DeleteDatabase(conn driver.Conn, dbName string) error {
 		return err
 	}
 	return nil
+}
+
+func CheckIfTableExists(conn driver.Conn, dbName, tableName string) (bool, error) {
+	query := `
+		SELECT count()
+		FROM system.tables
+		WHERE database = ? AND name = ?
+	`
+	var count uint64
+	if err := conn.QueryRow(context.Background(), query, dbName, tableName).Scan(&count); err != nil {
+		fmt.Printf("[ ERROR ] : Failed to check if table exists - %v\n", err)
+		return false, err
+	}
+	return count > 0, nil
 }
