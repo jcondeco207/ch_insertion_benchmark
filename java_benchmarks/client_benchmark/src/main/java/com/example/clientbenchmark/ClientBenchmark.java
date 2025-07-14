@@ -9,6 +9,11 @@ public class ClientBenchmark {
                 8123);
 
         System.out.println("Is connected: " + ch_connector.is_connected());
+
+        ch_connector.getDatabaseNames();
+
+        // ch_connector.query_clickhouse("SHOW DATABASES");
+
         System.out.println("Is disconnected: " + ch_connector.disconnect());
 
     }
