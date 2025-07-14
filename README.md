@@ -1,5 +1,9 @@
 # Clickhouse Insertion Benchmark
 
+```
+⚠️ Work in Progress ⚠️
+```
+
 ## Objective
 A benchmark on clickhouse bulk insertion for thousands of rows with JSONEachRow. (in different languages).
 Languages to be tested:
