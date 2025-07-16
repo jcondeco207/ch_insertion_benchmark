@@ -13,11 +13,13 @@ import com.clickhouse.client.ClickHouseProtocol;
 import com.clickhouse.client.api.Client;
 import com.clickhouse.client.api.data_formats.ClickHouseBinaryFormatReader;
 import com.clickhouse.client.api.internal.ServerSettings;
+import com.clickhouse.client.api.metadata.TableSchema;
 import com.clickhouse.client.api.query.GenericRecord;
 import com.clickhouse.client.api.query.QueryResponse;
 import com.clickhouse.client.api.query.QuerySettings;
 import com.clickhouse.client.api.query.Records;
 import com.clickhouse.client.config.ClickHouseClientOption;
+import com.clickhouse.data.ClickHouseColumn;
 import com.clickhouse.data.ClickHouseFormat;
 
 public class CHConn {
@@ -90,21 +92,34 @@ public class CHConn {
         }
     }
 
-    public void readData() {
+    public Records readData(String sql) {
+        try (Records records = this.ch_client.queryRecords(sql).get(3, TimeUnit.SECONDS);) {
+            return records;
+            // List<ClickHouseColumn> column_names = null;
+            // Iterate thru records
+            // for (GenericRecord record : records) {
+            // if(column_names == null){
+            // column_names = record.getSchema().getColumns();
+            // System.out.println("Table schema: " + column_names);
+            // }
+            // for(ClickHouseColumn column_name: column_names){
+            // }
+
+            // }
+        } catch (Exception e) {
+            System.out.println("[ ERROR ]: Failed to query to clickhouse due to: " + e);
+            return null;
+        }
     }
 
     public void getDatabaseNames() {
-        System.out.println("Reading data from table: {} using Records iterator");
-        final String sql = "SHOW DATABASES";
-        try (Records records = this.ch_client.queryRecords(sql).get(3, TimeUnit.SECONDS);) {
-
-            System.out.println(records.getResultRows());
-            // Iterate thru records
-            for (GenericRecord record : records) {
-                System.out.println(record);
+        try {
+            Records records = this.readData("SHOW DATABASES");
+            for(GenericRecord record: records){
+                System.out.println(record.getString("name"));
             }
         } catch (Exception e) {
-            // ERROR
+            System.out.println("[ ERROR ]: Failed to disconnect clickhouse due to: " + e);
         }
     }
 
