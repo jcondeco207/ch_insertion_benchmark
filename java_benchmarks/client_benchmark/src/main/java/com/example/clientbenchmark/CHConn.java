@@ -112,14 +112,17 @@ public class CHConn {
         }
     }
 
-    public void getDatabaseNames() {
+    public List<String> getDatabaseNames() {
+        List<String> databases = new ArrayList<String>();
         try {
             Records records = this.readData("SHOW DATABASES");
             for(GenericRecord record: records){
-                System.out.println(record.getString("name"));
+                databases.add(record.getString("name"));
             }
+            return databases;
         } catch (Exception e) {
-            System.out.println("[ ERROR ]: Failed to disconnect clickhouse due to: " + e);
+            System.out.println("[ ERROR ]: Failed to get database names clickhouse due to: " + e);
+            return databases;
         }
     }
 
