@@ -126,6 +126,29 @@ public class CHConn {
         }
     }
 
+    public boolean create_database(String db_name){
+        try {
+            return true;
+        } catch (Exception e) {
+            System.out.println("[ ERROR ]: Failed to create database " + db_name + " clickhouse due to: " + e);
+            return false;
+        }
+    }
+
+    public boolean delete_database(String db_name){
+        try {
+            return true;
+        } catch (Exception e) {
+            System.out.println("[ ERROR ]: Failed to delete database " + db_name + " clickhouse due to: " + e);
+            return false;
+        }
+    }
+
+    public void show_database_tables(){
+        // implement
+    }
+    
+
     public CHConn(String username, String passsword, String clickhouse_host, int clickhouse_port) {
         set_username(username);
         set_password(passsword);
