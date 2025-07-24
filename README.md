@@ -11,6 +11,7 @@ Languages to be tested:
 - [ ] Go
 - [ ] Python
 - [ ] Java
+- [ ] Scala
 
 This way I'll be able to decide wich language (and sdk) is better for my thesis log parsing and insertion component.
 
