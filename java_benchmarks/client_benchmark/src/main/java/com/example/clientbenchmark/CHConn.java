@@ -144,8 +144,18 @@ public class CHConn {
         }
     }
 
-    public void show_database_tables(){
-        // implement
+    public List<String> show_database_tables(String db_name){
+        List<String> tables = new ArrayList<String>();
+        try {
+            Records records = this.readData("SHOW TABLES FROM " + db_name);
+            for(GenericRecord record: records){
+                tables.add(record.getString("name"));
+            }
+            return tables;
+        } catch (Exception e) {
+            System.out.println("[ ERROR ]: Failed to get database names clickhouse due to: " + e);
+            return tables;
+        }
     }
     
 
