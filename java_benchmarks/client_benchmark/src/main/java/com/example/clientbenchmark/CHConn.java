@@ -128,6 +128,7 @@ public class CHConn {
 
     public boolean create_database(String db_name){
         try {
+            this.ch_client.query("CREATE DATABASE IF NOT EXISTS " + db_name).get(3, TimeUnit.SECONDS);
             return true;
         } catch (Exception e) {
             System.out.println("[ ERROR ]: Failed to create database " + db_name + " clickhouse due to: " + e);
@@ -137,6 +138,7 @@ public class CHConn {
 
     public boolean delete_database(String db_name){
         try {
+            this.ch_client.query("DROP DATABASE IF EXISTS " + db_name).get(3, TimeUnit.SECONDS);
             return true;
         } catch (Exception e) {
             System.out.println("[ ERROR ]: Failed to delete database " + db_name + " clickhouse due to: " + e);
