@@ -3,24 +3,32 @@ package com.example.clientbenchmark;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+// import java.util.Map;
+// import java.util.concurrent.CompletableFuture;
+// import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import com.clickhouse.client.ClickHouseClient;
-import com.clickhouse.client.ClickHouseProtocol;
+import com.clickhouse.client.ClickHouseRequest;
+import com.clickhouse.client.ClickHouseResponse;
+// import com.clickhouse.client.ClickHouseClient;
+// import com.clickhouse.client.ClickHouseProtocol;
 // imports 
 import com.clickhouse.client.api.Client;
 import com.clickhouse.client.api.data_formats.ClickHouseBinaryFormatReader;
+import com.clickhouse.client.api.data_formats.ClickHouseBinaryFormatWriter;
+// import com.clickhouse.client.api.data_formats.ClickHouseBinaryFormatReader;
 import com.clickhouse.client.api.internal.ServerSettings;
 import com.clickhouse.client.api.metadata.TableSchema;
+// import com.clickhouse.client.api.metadata.TableSchema;
 import com.clickhouse.client.api.query.GenericRecord;
 import com.clickhouse.client.api.query.QueryResponse;
-import com.clickhouse.client.api.query.QuerySettings;
+// import com.clickhouse.client.api.query.QueryResponse;
+// import com.clickhouse.client.api.query.QuerySettings;
 import com.clickhouse.client.api.query.Records;
-import com.clickhouse.client.config.ClickHouseClientOption;
+// import com.clickhouse.client.config.ClickHouseClientOption;
+// import com.clickhouse.data.ClickHouseColumn;
+// import com.clickhouse.data.ClickHouseFormat;
 import com.clickhouse.data.ClickHouseColumn;
-import com.clickhouse.data.ClickHouseFormat;
 
 public class CHConn {
     private Client ch_client;
@@ -92,8 +100,8 @@ public class CHConn {
         }
     }
 
-    public Records read_data(String sql) {
-        try (Records records = this.ch_client.queryRecords(sql).get(3, TimeUnit.SECONDS);) {
+    public QueryResponse read_data(String sql) {
+        try (QueryResponse records = this.ch_client.query(sql).get(3, TimeUnit.SECONDS);) {
             return records;
             // List<ClickHouseColumn> column_names = null;
             // Iterate thru records
@@ -115,10 +123,28 @@ public class CHConn {
     public List<String> list_databases() {
         List<String> databases = new ArrayList<String>();
         try {
-            Records records = this.read_data("SHOW DATABASES");
-            for (GenericRecord record : records) {
+            String sql_query = "SHOW DATABASES";
+            Records records = this.ch_client.queryRecords(sql_query).get(3, TimeUnit.SECONDS);
+            for(GenericRecord record: records){
                 databases.add(record.getString("name"));
             }
+
+            // QueryResponse records = this.read_data(sql_query);
+            // TableSchema ts = new TableSchema(List.of(ClickHouseColumn.of("name", "String")));
+            // ClickHouseBinaryFormatReader reader = this.ch_client.newBinaryFormatReader(records, ts);
+            // while (reader.hasNext()) {
+            //     databases.add(reader.getString("name"));
+            //     System.out.println(databases);
+            // }
+
+            // this.ch_client.queryAll(sql_query).forEach(row -> {
+            // double id = row.getDouble("id");
+            // String title = row.getString("title");
+            // String url = row.getString("url");
+
+            // log.info("id: {}, title: {}, url: {}", id, title, url);
+            // });
+
             return databases;
         } catch (Exception e) {
             System.out.println("[ ERROR ]: Failed to get database names clickhouse due to: " + e);
@@ -158,25 +184,28 @@ public class CHConn {
 
             StringBuilder sb = new StringBuilder();
             sb.append("CREATE TABLE IF NOT EXISTS `")
-              .append(db_name)
-              .append("`.")
-              .append(table_name)
-              .append(" (\n");
-            sb.append(String.join(",\n", fields));
-            sb.append("\n) ENGINE = ")
-              .append(engine)
-              .append("\nPARTITION BY toMonday(")
-              .append(time_variable_name)
-              .append(")\nORDER BY (")
-              .append(primary_key)
-              .append(", ")
-              .append(time_variable_name)
-              .append(")");
+                    .append(db_name)
+                    .append("`.")
+                    .append(table_name)
+                    .append(" ( ");
+            sb.append(String.join(", ", fields));
+            sb.append(" ) ENGINE = ")
+                    .append(engine)
+                    .append(" PARTITION BY toMonday(")
+                    .append(time_variable_name)
+                    .append(") ORDER BY (")
+                    .append(primary_key)
+                    .append(", ")
+                    .append(time_variable_name)
+                    .append(")");
             String create_table_sql = sb.toString();
-            this.ch_client.query(create_table_sql).get(3, TimeUnit.SECONDS);
+
+            var response = this.ch_client.query(create_table_sql).get(3, TimeUnit.SECONDS);
+
             return true;
         } catch (Exception e) {
-            System.out.println("[ ERROR ]: Failed to create table" + table_name + " in " + db_name + " clickhouse due to: " + e);
+            System.out.println(
+                    "[ ERROR ]: Failed to create table" + table_name + " in " + db_name + " clickhouse due to: " + e);
             return false;
         }
 
@@ -185,13 +214,14 @@ public class CHConn {
     public List<String> show_database_tables(String db_name) {
         List<String> tables = new ArrayList<String>();
         try {
-            Records records = this.read_data("SHOW TABLES FROM " + db_name);
-            for (GenericRecord record : records) {
+            String sql_query = "SHOW TABLES FROM " + db_name;
+            Records records = this.ch_client.queryRecords(sql_query).get(3, TimeUnit.SECONDS);
+            for(GenericRecord record: records){
                 tables.add(record.getString("name"));
             }
             return tables;
         } catch (Exception e) {
-            System.out.println("[ ERROR ]: Failed to get database names clickhouse due to: " + e);
+            System.out.println("[ ERROR ]: Failed to get database tables clickhouse due to: " + e);
             return tables;
         }
     }
@@ -206,7 +236,35 @@ public class CHConn {
         }
     }
 
-    
+    public boolean insert_data(String db_name, String table_name, List<Map<String, Object>> values) {
+        try {
+            ;
+            if (values == null || values.isEmpty()) {
+                System.out.println("[ ERROR ]: No values provided for insertion.");
+                return false;
+            }
+
+            // Get columns from the first map
+            List<String> columns = new ArrayList<>(values.get(0).keySet());
+
+            // Prepare data as list of objects arrays
+            List<Object[]> data = new ArrayList<>();
+            for (Map<String, Object> value : values) {
+                Object[] row = columns.stream().map(value::get).toArray();
+                data.add(row);
+            }
+
+            String table_full = "`" + db_name + "`." + table_name;
+
+            // Insert data into ClickHouse
+            this.ch_client.insert(table_full, data).get(3, TimeUnit.SECONDS);
+
+            return true;
+        } catch (Exception e) {
+            System.out.println("[ ERROR ]: Failed to insert data into " + table_name + " in " + db_name + " - " + e);
+            return false;
+        }
+    }
 
     public CHConn(String username, String passsword, String clickhouse_host, int clickhouse_port) {
         set_username(username);
