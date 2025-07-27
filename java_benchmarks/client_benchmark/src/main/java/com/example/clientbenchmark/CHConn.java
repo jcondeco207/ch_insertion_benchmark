@@ -92,7 +92,7 @@ public class CHConn {
         }
     }
 
-    public Records readData(String sql) {
+    public Records read_data(String sql) {
         try (Records records = this.ch_client.queryRecords(sql).get(3, TimeUnit.SECONDS);) {
             return records;
             // List<ClickHouseColumn> column_names = null;
@@ -112,11 +112,11 @@ public class CHConn {
         }
     }
 
-    public List<String> getDatabaseNames() {
+    public List<String> list_databases() {
         List<String> databases = new ArrayList<String>();
         try {
-            Records records = this.readData("SHOW DATABASES");
-            for(GenericRecord record: records){
+            Records records = this.read_data("SHOW DATABASES");
+            for (GenericRecord record : records) {
                 databases.add(record.getString("name"));
             }
             return databases;
@@ -126,7 +126,7 @@ public class CHConn {
         }
     }
 
-    public boolean create_database(String db_name){
+    public boolean create_database(String db_name) {
         try {
             this.ch_client.query("CREATE DATABASE IF NOT EXISTS " + db_name).get(3, TimeUnit.SECONDS);
             return true;
@@ -136,7 +136,7 @@ public class CHConn {
         }
     }
 
-    public boolean delete_database(String db_name){
+    public boolean delete_database(String db_name) {
         try {
             this.ch_client.query("DROP DATABASE IF EXISTS " + db_name).get(3, TimeUnit.SECONDS);
             return true;
@@ -146,11 +146,47 @@ public class CHConn {
         }
     }
 
-    public List<String> show_database_tables(String db_name){
+    public boolean create_table(
+            String db_name,
+            String table_name,
+            List<String> fields,
+            String time_variable_name,
+            String primary_key,
+            String engine) {
+
+        try {
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("CREATE TABLE IF NOT EXISTS `")
+              .append(db_name)
+              .append("`.")
+              .append(table_name)
+              .append(" (\n");
+            sb.append(String.join(",\n", fields));
+            sb.append("\n) ENGINE = ")
+              .append(engine)
+              .append("\nPARTITION BY toMonday(")
+              .append(time_variable_name)
+              .append(")\nORDER BY (")
+              .append(primary_key)
+              .append(", ")
+              .append(time_variable_name)
+              .append(")");
+            String create_table_sql = sb.toString();
+            this.ch_client.query(create_table_sql).get(3, TimeUnit.SECONDS);
+            return true;
+        } catch (Exception e) {
+            System.out.println("[ ERROR ]: Failed to create table" + table_name + " in " + db_name + " clickhouse due to: " + e);
+            return false;
+        }
+
+    }
+
+    public List<String> show_database_tables(String db_name) {
         List<String> tables = new ArrayList<String>();
         try {
-            Records records = this.readData("SHOW TABLES FROM " + db_name);
-            for(GenericRecord record: records){
+            Records records = this.read_data("SHOW TABLES FROM " + db_name);
+            for (GenericRecord record : records) {
                 tables.add(record.getString("name"));
             }
             return tables;
@@ -159,7 +195,16 @@ public class CHConn {
             return tables;
         }
     }
-    
+
+    public boolean check_if_table_exists(String db_name, String table_name) {
+        try {
+            var tables = this.show_database_tables(db_name);
+            return tables.contains(table_name);
+        } catch (Exception e) {
+            System.out.println("[ ERROR ]: Failed to check if table exists - " + e);
+            return false;
+        }
+    }
 
     public CHConn(String username, String passsword, String clickhouse_host, int clickhouse_port) {
         set_username(username);
