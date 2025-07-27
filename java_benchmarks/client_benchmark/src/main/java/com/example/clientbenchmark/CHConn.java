@@ -206,6 +206,8 @@ public class CHConn {
         }
     }
 
+    
+
     public CHConn(String username, String passsword, String clickhouse_host, int clickhouse_port) {
         set_username(username);
         set_password(passsword);
