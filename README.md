@@ -12,6 +12,7 @@ Languages to be tested:
 - [ ] Python
 - [ ] Java
 - [ ] Scala
+- [ ] Swift
 
 This way I'll be able to decide wich language (and sdk) is better for my thesis log parsing and insertion component.
 
